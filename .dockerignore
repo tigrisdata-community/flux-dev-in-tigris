@@ -1,2 +1,4 @@
 flux-cache/
 safety-cache/
+__pycache__
+.cog/

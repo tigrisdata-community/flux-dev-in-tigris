@@ -5,6 +5,7 @@ import time
 import boto3
 from sqids import Sqids
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from scripts.download import copy_from_tigris
 
 import numpy as np
 import torch
@@ -101,6 +102,10 @@ class Predictor(BasePredictor):
         start = time.time()
 
         self.feature_extractor = CLIPImageProcessor.from_pretrained(FEATURE_EXTRACTOR)
+
+        if not os.path.exists(FLUX_MODEL_CACHE):
+            print("Downloading model")
+            copy_from_tigris()
 
         print("Loading flux txt2img pipeline...")
 
