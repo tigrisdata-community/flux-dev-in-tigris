@@ -55,6 +55,7 @@ def upload_batch(batch) -> int:
 
     for line in batch:
         src, bucket, dst = line
+        print(f"{src} -> s3://{bucket}/{dst}")
         s3.upload_file(src, bucket, dst)
         n += 1
 
@@ -66,7 +67,7 @@ def push_model(bucket_name, bucket_path, localdir, n_cpus):
         (
             x, 
             bucket_name,
-            bucket_path + "/" + x[len(localdir):],
+            bucket_path + x[len(localdir):],
         ) for x in glob(f"{localdir}/**/*")
     ]
 
@@ -104,12 +105,15 @@ def main():
 Let's a-go!
 """)
     
-    print(f"fetching and saving model {hf_model_name} to {destdir}...")
-    fetch_and_save_model(hf_model_name, destdir)
-    print("...done")
+    if not os.path.exists("local_setup/model_index.json"):
+        print(f"fetching and saving model {hf_model_name} to {destdir}...")
+        fetch_and_save_model(hf_model_name, destdir)
+        print("...done")
+    else:
+        print("model already prepared, skipping the fetch and save step")
 
     print(f"uploading dir {destdir} to Tigris bucket {bucket_name}")
-    push_model(bucket_name, hf_model_name, destdir, n_cpus)
+    push_model(bucket_name, hf_model_name, destdir, num_cpu)
     print("...done")
 
     print(f"""
