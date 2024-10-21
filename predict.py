@@ -23,6 +23,7 @@ from PIL import ImageOps, Image
 
 FLUX_MODEL_CACHE = "/src/flux-cache"
 FEATURE_EXTRACTOR = "./feature-extractor"
+PUBLIC_BUCKET_NAME = os.getenv("PUBLIC_BUCKET_NAME", "xe-flux")
 
 
 def upload_to_s3(files: List[str], bucket_name: str):
@@ -103,14 +104,16 @@ class Predictor(BasePredictor):
 
         self.feature_extractor = CLIPImageProcessor.from_pretrained(FEATURE_EXTRACTOR)
 
-        if not os.path.exists(FLUX_MODEL_CACHE):
+        model_path = FLUX_MODEL_CACHE + os.getenv("MODEL_PATH")
+
+        if not os.path.exists(FLUX_MODEL_CACHE + "/model_index.json"):
             print("Downloading model")
-            copy_from_tigris(destdir=FLUX_MODEL_CACHE)
+            model_path = copy_from_tigris(destdir=FLUX_MODEL_CACHE)
 
         print("Loading flux txt2img pipeline...")
 
         self.txt2img_pipe = FluxPipeline.from_pretrained(
-            FLUX_MODEL_CACHE, torch_dtype=torch.bfloat16
+            model_path, torch_dtype=torch.bfloat16
         )
 
         self.txt2img_pipe.to("cuda")
@@ -118,7 +121,7 @@ class Predictor(BasePredictor):
         print("Loading flux img2img pipeline...")
 
         self.img2img_pipe = FluxImg2ImgPipeline.from_pretrained(
-            FLUX_MODEL_CACHE, torch_dtype=torch.bfloat16
+            model_path, torch_dtype=torch.bfloat16
         )
 
         self.img2img_pipe.image_processor = VaeImageProcessor(
@@ -253,4 +256,4 @@ class Predictor(BasePredictor):
                 "Something went wrong. Try running it again, or try a different prompt."
             )
 
-        return upload_to_s3(output_paths, os.environ["BUCKET_NAME"])
+        return upload_to_s3(output_paths, PUBLIC_BUCKET_NAME)

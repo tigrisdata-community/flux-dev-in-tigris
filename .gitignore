@@ -2,3 +2,4 @@ safety-cache
 flux-cache
 __pycache__
 .cog/
+local_setup/

@@ -1,4 +1,3 @@
-import argparse
 from multiprocessing import Pool
 from typing import Generator, Iterable, List
 from urllib.parse import urlparse
@@ -29,7 +28,7 @@ def batcher(iterable: Iterable, batch_size: int) -> Generator[List, None, None]:
         yield batch
 
 
-def download_batch(batch: List[str]) -> int:
+def download_batch(batch) -> int:
     s3 = boto3.client("s3")
     n = 0
     for line in batch:
@@ -39,17 +38,9 @@ def download_batch(batch: List[str]) -> int:
 
         folder, basename = os.path.split(url_path)
 
-        print(f"{folder} {prefix}")
-        if prefix[:-1] in folder:
-            folder = folder.replace(prefix[:-1], "")
-        print(folder)
-
         dir = os.path.join(destdir, folder)
         os.makedirs(dir, exist_ok=True)
         filepath = os.path.join(dir, basename)
-
-        if filepath.startswith("/"):
-            filepath = filepath[1:]
 
         print(f"{line} -> {filepath}")
         s3.download_file(url.netloc, url_path, filepath)
@@ -59,7 +50,7 @@ def download_batch(batch: List[str]) -> int:
 
 def copy_from_tigris(
         model_name: str = os.getenv("MODEL_PATH", "flux-1.dev"),
-        bucket_name: str = os.getenv("BUCKET_NAME", "cipnahubakfu"),
+        bucket_name: str = os.getenv("MODEL_BUCKET_NAME", "cipnahubakfu"),
         destdir: str = "flux-cache",
         n_cpus: int = os.cpu_count()
     ):
@@ -80,8 +71,6 @@ def copy_from_tigris(
     s3 = boto3.client("s3")
     model_files_resp = s3.list_objects_v2(Bucket=bucket_name, Prefix=model_name)
 
-    print(model_files_resp)
-
     model_files = [ (f"s3://{bucket_name}/{x['Key']}", model_name, destdir) for x in model_files_resp["Contents"] ]
     print(f"using {n_cpus} cpu cores for downloads")
     n_cpus = min(len(model_files), n_cpus)
@@ -91,3 +80,5 @@ def copy_from_tigris(
             download_batch, batcher(model_files, batch_size)
         ):
             pass
+
+    return os.path.join(destdir, model_name)
