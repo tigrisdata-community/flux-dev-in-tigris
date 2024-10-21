@@ -105,7 +105,7 @@ class Predictor(BasePredictor):
 
         if not os.path.exists(FLUX_MODEL_CACHE):
             print("Downloading model")
-            copy_from_tigris()
+            copy_from_tigris(destdir=FLUX_MODEL_CACHE)
 
         print("Loading flux txt2img pipeline...")
 
