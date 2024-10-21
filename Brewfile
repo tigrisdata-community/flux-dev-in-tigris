@@ -1,0 +1,5 @@
+brew "python@3.11"
+brew "pipenv"
+brew "cog"
+brew "huggingface-cli"
+brew "awscli"

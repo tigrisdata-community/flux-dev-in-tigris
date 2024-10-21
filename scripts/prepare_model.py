@@ -1,5 +1,6 @@
 from glob import glob
 from multiprocessing import Pool
+from shutil import rmtree
 from typing import Generator, Iterable, List
 import argparse
 import boto3
@@ -68,7 +69,7 @@ def push_model(bucket_name, bucket_path, localdir, n_cpus):
             x, 
             bucket_name,
             bucket_path + x[len(localdir):],
-        ) for x in glob(f"{localdir}/**/*")
+        ) for x in glob(f"{localdir}/**/*") + glob(f"{localdir}/*.json")
     ]
 
     print(f"using {n_cpus} cpu cores for uploads")
@@ -96,6 +97,11 @@ def main():
     destdir = args.destdir
     num_cpu = args.num_cpu
 
+    try:
+        os.makedirs(destdir)
+    except FileExistsError:
+        pass
+    
     print(f"""using these settings:
 * hugging face model repo:      {hf_model_name}
 * bucket name:                  {bucket_name}
