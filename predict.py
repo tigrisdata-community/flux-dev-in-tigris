@@ -142,6 +142,10 @@ class Predictor(BasePredictor):
             description="Input prompt",
             default="",
         ),
+        negative_prompt: str = Input(
+            description="Input negative prompt",
+            default="",
+        ),
         aspect_ratio: str = Input(
             description="Aspect ratio for the generated image",
             choices=["1:1", "16:9", "21:9", "2:3", "3:2", "4:5", "5:4", "9:16", "9:21"],
@@ -201,6 +205,7 @@ class Predictor(BasePredictor):
 
         common_args = {
             "prompt": [prompt] * num_outputs,
+            "negative_prompt": [negative_prompt] * num_outputs,
             "guidance_scale": guidance_scale,
             "max_sequence_length": max_sequence_length,
             "generator": generator,
