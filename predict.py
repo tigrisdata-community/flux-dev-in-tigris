@@ -10,7 +10,7 @@ from scripts.download import copy_from_tigris
 import numpy as np
 import torch
 from cog import BasePredictor, Input, Path
-from diffusers import FluxPipeline, FluxImg2ImgPipeline
+from diffusers import StableDiffusionXLPipeline
 
 # from diffusers.pipelines.stable_diffusion.safety_checker import (
 #     StableDiffusionSafetyChecker,
@@ -21,7 +21,7 @@ from transformers import CLIPImageProcessor
 from PIL import ImageOps, Image
 
 
-FLUX_MODEL_CACHE = "/src/flux-cache"
+FLUX_MODEL_CACHE = "/src/"
 FEATURE_EXTRACTOR = "./feature-extractor"
 PUBLIC_BUCKET_NAME = os.getenv("PUBLIC_BUCKET_NAME", "xe-flux")
 
@@ -110,33 +110,19 @@ class Predictor(BasePredictor):
             print("Downloading model")
             model_path = copy_from_tigris(destdir=FLUX_MODEL_CACHE)
 
-        print("Loading flux txt2img pipeline...")
+        print("Loading sdxl txt2img pipeline...")
+        dtype = torch.bfloat16
 
-        self.txt2img_pipe = FluxPipeline.from_pretrained(
-            model_path, torch_dtype=torch.bfloat16
-        )
-
-        self.txt2img_pipe.to("cuda")
-
-        print("Loading flux img2img pipeline...")
-
-        self.img2img_pipe = FluxImg2ImgPipeline.from_pretrained(
-            model_path, torch_dtype=torch.bfloat16
-        )
-
-        self.img2img_pipe.image_processor = VaeImageProcessor(
-            vae_scale_factor=16,
-            vae_latent_channels=self.img2img_pipe.vae.config.latent_channels,
-        )
-
-        self.img2img_pipe.to("cuda")
+        self.txt2img_pipe = StableDiffusionXLPipeline.from_pretrained(
+            model_path, torch_dtype=dtype,
+        ).to("cuda")
 
         print("setup took: ", time.time() - start)
 
     def aspect_ratio_to_width_height(self, aspect_ratio: str):
         aspect_ratios = {
             "1:1": (1024, 1024),
-            "16:9": (1344, 768),
+            "16:9": (1344+64, 768+64),
             "21:9": (1536, 640),
             "3:2": (1216, 832),
             "2:3": (832, 1216),
@@ -155,10 +141,6 @@ class Predictor(BasePredictor):
         prompt: str = Input(
             description="Input prompt",
             default="",
-        ),
-        image: Path = Input(
-            description="Input image for img2img mode",
-            default=None,
         ),
         aspect_ratio: str = Input(
             description="Aspect ratio for the generated image",
@@ -210,21 +192,10 @@ class Predictor(BasePredictor):
 
         flux_kwargs = {}
 
-        if image:
-            print("img2img mode")
-            tmp_img = Image.open(image).convert("RGB")
-            width, height = resize_image_dimensions(tmp_img.size)
-            flux_kwargs["image"] = tmp_img.resize((width, height), Image.LANCZOS)
-            flux_kwargs["width"] = width
-            flux_kwargs["height"] = height
-            flux_kwargs["strength"] = prompt_strength
-            pipe = self.img2img_pipe
-        else:
-            print("txt2img mode")
-            width, height = resize_image_dimensions((width, height))
-            flux_kwargs["width"] = width
-            flux_kwargs["height"] = height
-            pipe = self.txt2img_pipe
+        width, height = resize_image_dimensions((width, height))
+        flux_kwargs["width"] = width
+        flux_kwargs["height"] = height
+        pipe = self.txt2img_pipe
 
         generator = torch.Generator("cuda").manual_seed(seed)
 

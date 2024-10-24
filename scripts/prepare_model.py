@@ -44,9 +44,25 @@ def batcher(iterable: Iterable, batch_size: int) -> Generator[List, None, None]:
 
 def fetch_and_save_model(model_name, destdir):
     import torch
-    from diffusers import FluxPipeline
+    from diffusers import StableDiffusionXLPipeline, UNet2DConditionModel
+    from huggingface_hub import hf_hub_download
 
-    pipe = FluxPipeline.from_pretrained(model_name, torch_dtype=torch.bfloat16)
+    dtype = torch.bfloat16
+    pipe = None
+
+    match model_name:
+        case "ByteDance/SDXL-Lightning":
+            from safetensors.torch import load_file
+            base = "stabilityai/stable-diffusion-xl-base-1.0"
+            repo = "ByteDance/SDXL-Lightning"
+            ckpt = "sdxl_lightning_4step_unet.safetensors"
+            unet = UNet2DConditionModel.from_config(base, subfolder="unet")
+            unet.load_state_dict(load_file(hf_hub_download(repo, ckpt)))
+            pipe = StableDiffusionXLPipeline.from_pretrained(base, unet=unet, torch_dtype=dtype, variant="fp16")
+        case _:
+            pipe = StableDiffusionXLPipeline.from_pretrained(model_name, torch_dtype=dtype)
+            pipe.unet = torch.compile(pipe.unet, mode="reduce-overhead", fullgraph=True)
+    
     pipe.save_pretrained(destdir, safe_serialization=True)
 
 

@@ -12,7 +12,7 @@ build:
     - "libxext6"
     - "wget"
   python_packages:
-    - "git+https://github.com/huggingface/diffusers.git@249a9e48e8f8aac4356d5a285c8ba0c600a80f64"
+    - "diffusers"
     - "torch==2.2"
     - "transformers==4.41.2"
     - "accelerate==0.31.0"
@@ -21,8 +21,6 @@ build:
     - "boto3"
     - "sqids"
     - "numpy<2"
+    - "cog"
 
-  run:
-    - pip install "git+https://github.com/kylemclaren/cog.git@d486018abab50cb3d9b4edd4916f256009a8bd95"
-    
 predict: "predict.py:Predictor"

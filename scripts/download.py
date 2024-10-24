@@ -51,7 +51,7 @@ def download_batch(batch) -> int:
 def copy_from_tigris(
         model_name: str = os.getenv("MODEL_PATH", "flux-1.dev"),
         bucket_name: str = os.getenv("MODEL_BUCKET_NAME", "cipnahubakfu"),
-        destdir: str = "flux-cache",
+        destdir: str = ".",
         n_cpus: int = os.cpu_count()
     ):
     """Copy files from Tigris to the destination folder. This will be done in parallel.
