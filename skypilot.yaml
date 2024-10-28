@@ -1,0 +1,27 @@
+resources:
+  # Optional; if left out, automatically pick the cheapest cloud.
+  cloud: aws
+  # 8x NVIDIA A100 GPU
+  accelerators: T4:1
+  ports: 5000
+
+service:
+  readiness_probe: /
+  replicas: 2
+
+# Working directory (optional) containing the project codebase.
+# Its contents are synced to ~/sky_workdir/ on the cluster.
+workdir: .
+
+# Typical use: pip install -r requirements.txt
+# Invoked under the workdir (i.e., can use its files).
+setup: |
+  conda create -n cog python=3.11 -y
+  conda activate cog
+  pip install diffusers torch==2.2 transformers==4.41.2 accelerate==0.31.0 sentencepiece protobuf boto3 sqids numpy<2 cog
+
+# Typical use: make use of resources, such as running training.
+# Invoked under the workdir (i.e., can use its files).
+run: |
+  conda activate cog
+  python -m cog.server.http --host ::
