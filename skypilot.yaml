@@ -6,7 +6,7 @@ resources:
 service:
   readiness_probe:
     path: /health-check
-    initial_delay_seconds: 5
+    initial_delay_seconds: 5 # be sure to keep this low, or you will burn compute doing nothing
   replica_policy:
     min_replicas: 1
     max_replicas: 3
