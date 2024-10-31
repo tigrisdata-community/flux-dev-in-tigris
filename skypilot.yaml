@@ -1,27 +1,24 @@
 resources:
-  # Optional; if left out, automatically pick the cheapest cloud.
-  cloud: aws
-  # 8x NVIDIA A100 GPU
-  accelerators: T4:1
   ports: 5000
+  image_id: docker:yasomimi/sdxl-tigris:latest
+  any_of:
+    - cloud: runpod
+      accelerators: A4000:1
+    - cloud: aws
+      region: us-east-2
+      accelerators: T4:1
 
 service:
-  readiness_probe: /
-  replicas: 2
+  readiness_probe:
+    path: /
+    initial_delay_seconds: 5
+  replica_policy:
+    min_replicas: 1
+    max_replicas: 3
+    target_qps_per_replica: 0.5
+    upscale_delay_seconds: 5
+    downscale_delay_seconds: 90
 
-# Working directory (optional) containing the project codebase.
-# Its contents are synced to ~/sky_workdir/ on the cluster.
-workdir: .
-
-# Typical use: pip install -r requirements.txt
-# Invoked under the workdir (i.e., can use its files).
-setup: |
-  conda create -n cog python=3.11 -y
-  conda activate cog
-  pip install diffusers torch==2.2 transformers==4.41.2 accelerate==0.31.0 sentencepiece protobuf boto3 sqids numpy<2 cog
-
-# Typical use: make use of resources, such as running training.
-# Invoked under the workdir (i.e., can use its files).
 run: |
-  conda activate cog
-  python -m cog.server.http --host ::
+  cd /src
+  /root/.pyenv/shims/python -m cog.server.http

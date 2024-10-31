@@ -21,7 +21,7 @@ from transformers import CLIPImageProcessor
 from PIL import ImageOps, Image
 
 
-FLUX_MODEL_CACHE = "/src/"
+FLUX_MODEL_CACHE = os.getenv("MODEL_CACHE_DIR", "/src/")
 FEATURE_EXTRACTOR = "./feature-extractor"
 PUBLIC_BUCKET_NAME = os.getenv("PUBLIC_BUCKET_NAME", "xe-flux")
 
