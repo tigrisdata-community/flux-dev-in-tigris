@@ -1,17 +1,11 @@
 resources:
-  accelerators: [RTXA4000:1, T4:1, RTXA6000:1, L4:1, V100:1]
+  accelerators: {RTXA4000:1, A4000:1, A5000:1, RTXA5000:1, A6000:1, T4:1, RTXA6000:1, L4:1, V100:1}
   ports: 5000
   image_id: docker:yasomimi/sdxl-tigris:latest
-  # any_of:
-  #   - cloud: runpod
-  #     accelerators: A4000:1
-  #   - cloud: aws
-  #     region: us-east-2
-  #     accelerators: T4:1
 
 service:
   readiness_probe:
-    path: /
+    path: /health-check
     initial_delay_seconds: 5
   replica_policy:
     min_replicas: 1
