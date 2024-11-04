@@ -19,6 +19,7 @@ image = Image(
         "sqids",
         "numpy<2",
         "cog",
+        "compel",
     ]
 )
 
@@ -52,16 +53,16 @@ def load_models():
 def generate(context, **inputs):
     predictor: Predictor = context.on_start_value
 
-    prompt = inputs.pop("prompt", None)
-    negative_prompt = inputs.pop("negative_prompt", "")
-    aspect_ratio = inputs.pop("aspect_ratio", "1:1")
-    num_outputs = inputs.pop("num_outputs", 1)
-    guidance_scale = inputs.pop("guidance_scale", 10.5)
-    max_sequence_length = inputs.pop("max_sequence_length", 256)
-    num_inference_steps = inputs.pop("num_inference_steps", 50)
-    seed = inputs.pop("seed", None) # can be None, it's okay
-    output_format = inputs.pop("output_format", "webp")
-    output_quality = inputs.pop("output_quality", 80)
+    prompt = inputs.get("prompt", None)
+    negative_prompt = inputs.get("negative_prompt", "")
+    aspect_ratio = inputs.get("aspect_ratio", "1:1")
+    num_outputs = inputs.get("num_outputs", 1)
+    guidance_scale = inputs.get("guidance_scale", 10.5)
+    max_sequence_length = inputs.get("max_sequence_length", 256)
+    num_inference_steps = inputs.get("num_inference_steps", 50)
+    seed = inputs.get("seed", None) # can be None, it's okay
+    output_format = inputs.get("output_format", "webp")
+    output_quality = inputs.get("output_quality", 80)
     
     result = predictor.predict(
         prompt=prompt,

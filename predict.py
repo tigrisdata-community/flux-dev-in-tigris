@@ -19,6 +19,7 @@ from diffusers.utils import load_image
 from diffusers.image_processor import VaeImageProcessor
 from transformers import CLIPImageProcessor
 from PIL import ImageOps, Image
+from compel import Compel, ReturnedEmbeddingsType
 
 
 FLUX_MODEL_CACHE = os.getenv("MODEL_CACHE_DIR", "/src/")
@@ -117,6 +118,8 @@ class Predictor(BasePredictor):
             model_path, torch_dtype=dtype,
         ).to("cuda")
 
+        self.compel = Compel(tokenizer=[self.txt2img_pipe.tokenizer, self.txt2img_pipe.tokenizer_2] , text_encoder=[self.txt2img_pipe.text_encoder, self.txt2img_pipe.text_encoder_2], returned_embeddings_type=ReturnedEmbeddingsType.PENULTIMATE_HIDDEN_STATES_NON_NORMALIZED, requires_pooled=[False, True])
+
         print("setup took: ", time.time() - start)
 
     def aspect_ratio_to_width_height(self, aspect_ratio: str):
@@ -203,9 +206,13 @@ class Predictor(BasePredictor):
 
         generator = torch.Generator("cuda").manual_seed(seed)
 
+        conditioning, pooled = self.compel([prompt, negative_prompt])
+
         common_args = {
-            "prompt": [prompt] * num_outputs,
-            "negative_prompt": [negative_prompt] * num_outputs,
+            "prompt_embeds": conditioning[0:1] * num_outputs,
+            "negative_prompt_embeds": conditioning[1:2] * num_outputs,
+            "pooled_prompt_embeds": pooled[0:1] * num_outputs,
+            "negative_pooled_prompt_embeds": pooled[1:2] * num_outputs,
             "guidance_scale": guidance_scale,
             "max_sequence_length": max_sequence_length,
             "generator": generator,
