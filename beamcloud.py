@@ -47,7 +47,7 @@ def load_models():
     cpu=2,
     gpu="A100-40",
     volumes=[
-        Volume(name="models", mount_path="/src/"),
+        Volume(name="models", mount_path="/src"),
     ],
 )
 def generate(context, **inputs):

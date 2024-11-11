@@ -24,7 +24,7 @@ from compel import Compel, ReturnedEmbeddingsType
 
 FLUX_MODEL_CACHE = os.getenv("MODEL_CACHE_DIR", "/src/")
 FEATURE_EXTRACTOR = "./feature-extractor"
-PUBLIC_BUCKET_NAME = os.getenv("PUBLIC_BUCKET_NAME", "xe-flux")
+PUBLIC_BUCKET_NAME = os.getenv("PUBLIC_BUCKET_NAME")
 
 
 def upload_to_s3(files: List[str], bucket_name: str):
@@ -100,6 +100,8 @@ def resize_image_dimensions(
 class Predictor(BasePredictor):
     def setup(self):
         """Load the model into memory to make running multiple predictions efficient"""
+
+        assert PUBLIC_BUCKET_NAME is not None, "set PUBLIC_BUCKET_NAME to your image upload bucket"
 
         start = time.time()
 

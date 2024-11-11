@@ -49,8 +49,8 @@ def download_batch(batch) -> int:
 
 
 def copy_from_tigris(
-        model_name: str = os.getenv("MODEL_PATH", "flux-1.dev"),
-        bucket_name: str = os.getenv("MODEL_BUCKET_NAME", "cipnahubakfu"),
+        model_name: str = os.getenv("MODEL_PATH", "ByteDance/SDXL-Lightning"),
+        bucket_name: str = os.getenv("MODEL_BUCKET_NAME", "model-storage-demo"),
         destdir: str = ".",
         n_cpus: int = os.cpu_count()
     ):

@@ -16,7 +16,7 @@ except ImportError:
     sys.exit(2)
 
 
-HF_MODEL_NAME="black-forest-labs/FLUX.1-schnell"
+HF_MODEL_NAME="ByteDance/SDXL-Lightning"
 DESTDIR="local_setup"
 
 
